@@ -1,20 +1,35 @@
-# Virtual environment
-venv/
-.venv/
-env/
-
-# Python cache
 __pycache__/
 *.py[cod]
-*$py.class
 *.so
+*.egg
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
 
-# IDE / OS
+venv/
+env/
+ENV/
+.venv
+
+logs/
+*.log
+
+.vscode/
 .idea/
 *.swp
+*.swo
+
 .DS_Store
 Thumbs.db
 
-# Environment secrets
-.env
-.env.local
+*.tar
+*.dockerignore
+
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite
