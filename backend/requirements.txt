@@ -1,8 +1,8 @@
 fastapi
 uvicorn
 pydantic
+pymorphy2
 pymorphy3
-pymorphy3-dicts-ru
 sqlalchemy
 httpx
 aiosqlite

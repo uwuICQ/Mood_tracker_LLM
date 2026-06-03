@@ -164,7 +164,6 @@ def mix_colors(emotions_intensities: dict) -> tuple:
         b += col[2] * weight
     return (int(r), int(g), int(b))
 
-    import random
 
 # Поддерживающие фразы для каждой эмоции (по 3 варианта)
 SUPPORTIVE_MESSAGES = {

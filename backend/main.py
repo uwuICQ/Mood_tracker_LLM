@@ -1,38 +1,50 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from typing import List
-from pathlib import Path
-from datetime import datetime
+import random
 
+# Прямые импорты из текущей папки
+from database import SessionLocal, User, Session as DBSession, Message, MoodAnalysis, engine, Base
 from emotion_analyzer import analyze_text, mix_colors, emotion_to_rgb, get_supportive_message
 
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session as SQLAlchemySession
+from sqlalchemy import func
 
-# ---------- База данных ----------
-DATABASE_URL = "sqlite:///./data/emotions.db"
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+app = FastAPI(title="Mood Tracker API", version="1.0.0")
 
-class EntryDB(Base):
-    __tablename__ = "entries"
-    id = Column(Integer, primary_key=True, index=True)
-    text = Column(String, nullable=False)
-    emotion = Column(String, nullable=False)
-    intensity = Column(Float, nullable=False)
-    color = Column(String, nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+# Авто-создание таблиц при запуске
+@app.on_event("startup")
+def startup_event():
+    Base.metadata.create_all(bind=engine)
 
-Base.metadata.create_all(bind=engine)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 
-# ---------- Pydantic ----------
+
+)
+
+# ============================================
+# 2. БАЗА РУССКИХ ФАКТОВ ОБ ЭМОЦИЯХ
+# ============================================
+RUSSIAN_FUN_FACTS = [
+    "Радость заставляет мозг вырабатывать дофамин, который работает как природное обезболивающее.",
+    "Гнев повышает температуру тела и учащает пульс — вы буквально 'закипаете'.",
+    "Слезы грусти содержат гормоны стресса, поэтому плач буквально выводит стресс из организма.",
+    "Чувство удивления длится всего долю секунды, прежде чем сменится другой эмоцией.",
+    "Улыбка, даже искусственная, отправляет в мозг сигнал о безопасности и снижает тревогу.",
+    "Спокойствие физически увеличивает плотность серого вещества в областях мозга, отвечающих за память."
+]
+
+# ============================================
+# 3. ПОДРОБНЫЕ МОДЕЛИ ОТВЕТОВ ФРОНТЕНДУ
+# ============================================
 class TextRequest(BaseModel):
-    text: str = Field(..., min_length=1, max_length=1000)
+    text: str = Field(..., min_length=1)
 
 class EmotionDetail(BaseModel):
     emotion: str
@@ -43,41 +55,12 @@ class AnalyzeResponse(BaseModel):
     emotion: str
     intensity: float
     color: str
-    all_emotions: List[EmotionDetail] = []
-    supportive_message: str   # добавлено поле с поддерживающей фразой
+    message: str  # <--- Вот та самая мотивирующая фраза!
+    all_emotions: List[EmotionDetail]
 
-class EntryResponse(BaseModel):
-    id: int
-    text: str
-    emotion: str
-    intensity: float
-    color: str
-    timestamp: str
-
-# ---------- FastAPI ----------
-app = FastAPI(title="Emotion Analyzer API", version="1.0.0")
-
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Статика
-static_dir = Path(__file__).parent.parent / "static"
-if static_dir.exists():
-    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
-
-@app.get("/")
-def root():
-    index_path = static_dir / "index.html"
-    if index_path.exists():
-        return FileResponse(str(index_path))
-    return {"message": "Emotion Analyzer API is running. Go to /docs for Swagger."}
-
+# ============================================
+# 4. ПОДКЛЮЧЕНИЕ К БАЗЕ ДАННЫХ
+# ============================================
 def get_db():
     db = SessionLocal()
     try:
@@ -85,66 +68,93 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+# ============================================
+# 5. ЭНДПОИНТЫ
+# ============================================
+
+@app.get("/")
+def root():
+    return {"message": "Mood Tracker API работает на 100%!"}
+
+@app.get("/random-fact")
+def get_random_fact():
+    """Случайный факт для окна ожидания"""
+    return {"fact": random.choice(RUSSIAN_FUN_FACTS)}
+
+@app.get("/stats")
+def get_stats(db: SQLAlchemySession = Depends(get_db)):
+    """Статистика для Архива (считает прямо из БД)"""
+    try:
+        results = db.query(
+            MoodAnalysis.mood_label, 
+            func.count(MoodAnalysis.id)
+        ).group_by(MoodAnalysis.mood_label).all()
+        return {emotion: count for emotion, count in results}
+    except Exception as e:
+        print(f"Ошибка БД: {e}")
+        return {}
 
 @app.post("/analyze", response_model=AnalyzeResponse)
-def analyze(request: TextRequest, db: Session = Depends(get_db)):
+def analyze(request: TextRequest, db: SQLAlchemySession = Depends(get_db)):
+    """Главный эндпоинт: анализ, сохранение в БД и генерация фразы"""
+    
+    # 1. Анализируем текст
     result = analyze_text(request.text)
+    dominant_emotion = result["dominant_emotion"]
+    intensity = result["intensity"]
+    
+    # 2. Вычисляем цвета и достаем мотивирующую фразу
     mixed_rgb = mix_colors(result["emotions"])
     color_hex = f"#{mixed_rgb[0]:02x}{mixed_rgb[1]:02x}{mixed_rgb[2]:02x}"
+    support_msg = get_supportive_message(dominant_emotion)
     
     all_emotions = []
-    for emotion, intensity in result["emotions"].items():
-        rgb = emotion_to_rgb(emotion, intensity)
+    for emotion, em_intensity in result["emotions"].items():
+        rgb = emotion_to_rgb(emotion, em_intensity)
         all_emotions.append(EmotionDetail(
-            emotion=emotion,
-            intensity=intensity,
-            color=f"#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}"
+            emotion=emotion, intensity=em_intensity, color=f"#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}"
         ))
+
+    # 3. Сохраняем в твою реляционную Базу Данных
+    try:
+        # Безопасное создание дефолтного юзера и сессии (чтобы не было ошибок ключей)
+        user = db.query(User).filter(User.id == 1).first()
+        if not user:
+            user = User(id=1, username="test_user")
+            db.add(user)
+            db.commit()
+            
+        session_db = db.query(DBSession).filter(DBSession.id == 1).first()
+        if not session_db:
+            session_db = DBSession(id=1, user_id=1)
+            db.add(session_db)
+            db.commit()
+
+        # Запись самого сообщения
+        new_message = Message(text=request.text, user_id=1, session_id=1)
+        db.add(new_message)
+        db.flush() 
+        
+        # Запись анализа
+        new_analysis = MoodAnalysis(
+            message_id=new_message.id,
+            mood_label=dominant_emotion,
+            mood_score=round(intensity, 2),
+            valence=0.0,
+            arousal=0.0,
+            model_version="1.0.0"
+        )
+        db.add(new_analysis)
+        db.commit() 
+    except Exception as e:
+        print(f"Ошибка БД: {e}")
+        db.rollback() 
     
-    # Получаем поддерживающую фразу для доминирующей эмоции
-    supportive_msg = get_supportive_message(result["dominant_emotion"])
-    
-    # Сохраняем в БД
-    entry = EntryDB(
-        text=request.text,
-        emotion=result["dominant_emotion"],
-        intensity=result["intensity"],
-        color=color_hex
-    )
-    db.add(entry)
-    db.commit()
-    db.refresh(entry)
-    
+    # 4. Отдаем результат фронтенду!
     return AnalyzeResponse(
-        emotion=result["dominant_emotion"],
-        intensity=result["intensity"],
+        emotion=dominant_emotion,
+        intensity=intensity,
         color=color_hex,
-        all_emotions=all_emotions,
-        supportive_message=supportive_msg
+        message=support_msg,  # Отправляем фразу
+        all_emotions=all_emotions
     )
-
-@app.get("/entries", response_model=List[EntryResponse])
-def get_entries(db: Session = Depends(get_db)):
-    entries = db.query(EntryDB).order_by(EntryDB.timestamp.desc()).all()
-    return [
-        EntryResponse(
-            id=e.id,
-            text=e.text,
-            emotion=e.emotion,
-            intensity=e.intensity,
-            color=e.color,
-            timestamp=e.timestamp.isoformat()
-        ) for e in entries
-    ]
-
-@app.delete("/entries/{entry_id}")
-def delete_entry(entry_id: int, db: Session = Depends(get_db)):
-    entry = db.query(EntryDB).filter(EntryDB.id == entry_id).first()
-    if not entry:
-        raise HTTPException(status_code=404, detail="Entry not found")
-    db.delete(entry)
-    db.commit()
-    return {"status": "ok"}

@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Записать эмоцию | Mood Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #FF3D7F;
+    --pink-mid: #FF6FA8;
+    --pink-light: #FFB3CC;
+    --pink-pale: #FFE8F0;
+    --dark: #1A1A2E;
+    --gray-bg: #F2F2F2;
+    --white: #FFFFFF;
+    --text: #333;
+    --bg: var(--gray-bg);
+    --card-bg: var(--white);
+    --input-bg: #F8F8F8;
+    --text-main: var(--text);
+    --border: #E0E0E0;
+    --label-color: #AAA;
+  }
+  body.dark {
+    --bg: #1A1A2E;
+    --card-bg: #252540;
+    --input-bg: #1A1A2E;
+    --text-main: #F0F0F0;
+    --border: #3A3A5C;
+    --label-color: #8888AA;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text-main);
+    min-height: 100vh;
+    transition: background .3s, color .3s;
+  }
+
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 32px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    transition: background .3s, border-color .3s;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .nav-logo .flower { font-size: 36px; }
+  .nav-logo span { font-size: 13px; font-weight: 700; color: var(--pink); }
+  .nav-links { display: flex; gap: 8px; }
+  .nav-links a {
+    text-decoration: none; font-size: 13px; font-weight: 700;
+    color: var(--text-main); padding: 8px 18px; border-radius: 24px;
+    transition: background .2s, color .2s;
+  }
+  .nav-links a:hover { background: var(--pink-pale); color: var(--pink); }
+  .nav-links a.active { background: var(--pink); color: white; }
+  .nav-x {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: var(--dark); color: white;
+    font-family: 'Unbounded', sans-serif; font-size: 14px; font-weight: 900;
+    border: none; cursor: pointer;
+  }
+
+  main { max-width: 760px; margin: 32px auto; padding: 0 20px; }
+
+  .message-box {
+    background: var(--card-bg); border-radius: 20px; padding: 28px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06); transition: background .3s;
+  }
+  .input-row {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--input-bg); border-radius: 14px; padding: 14px 18px;
+    border: 1.5px solid var(--border); transition: border-color .2s, background .3s;
+  }
+  .input-row:focus-within { border-color: var(--pink); }
+  .input-row input {
+    flex: 1; background: transparent; border: none; outline: none;
+    font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 600;
+    color: var(--text-main);
+  }
+  .input-row input::placeholder { color: var(--label-color); }
+  .mic-btn { background: none; border: none; cursor: pointer; font-size: 20px; color: var(--label-color); }
+  .mic-btn:hover { color: var(--pink); }
+
+  .history-label { font-size: 14px; font-weight: 700; color: var(--label-color); margin: 24px 0 12px; }
+  .history-list { border: 1.5px solid var(--border); border-radius: 18px; overflow: hidden; background: var(--card-bg); transition: background .3s, border-color .3s; }
+  .history-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    transition: background .15s; cursor: pointer;
+  }
+  .history-item:last-child { border-bottom: none; }
+  .history-item:hover { background: var(--pink-pale); }
+  body.dark .history-item:hover { background: rgba(255,61,127,0.08); }
+  .history-text { font-size: 15px; font-weight: 600; color: var(--text-main); }
+  .history-underline { height: 1px; background: var(--border); margin-top: 6px; width: 80%; }
+  .mood-dot { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: transform .2s; }
+  .history-item:hover .mood-dot { transform: scale(1.15); }
+
+  .bottom-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 28px; flex-wrap: wrap; gap: 16px;
+  }
+  .save-btn {
+    padding: 16px 48px;
+    background: linear-gradient(135deg, var(--pink-mid), var(--pink));
+    color: white; font-family: 'Nunito', sans-serif; font-size: 18px; font-weight: 800;
+    border: none; border-radius: 40px; cursor: pointer;
+    box-shadow: 0 4px 20px rgba(255,61,127,0.35); transition: transform .2s, box-shadow .2s;
+  }
+  .save-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(255,61,127,0.45); }
+
+  .fact-btn {
+    padding: 16px 28px;
+    background: linear-gradient(135deg, #FF6FA8, #FF3D7F);
+    color: white; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800;
+    border: none; border-radius: 40px; cursor: pointer;
+    box-shadow: 0 4px 20px rgba(255,61,127,0.25); transition: transform .2s;
+  }
+  .fact-btn:hover { transform: translateY(-2px); }
+  .fact-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+  /* FACT OVERLAY */
+  .fact-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+    z-index: 200; align-items: center; justify-content: center;
+  }
+  .fact-overlay.show { display: flex; animation: fadeIn .2s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .fact-card {
+    background: var(--card-bg); border-radius: 28px; padding: 40px;
+    max-width: 560px; width: 90%; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: slideUp .3s cubic-bezier(.175,.885,.32,1.275);
+  }
+  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .fact-loading {
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+  }
+  .spinner {
+    width: 48px; height: 48px; border: 4px solid var(--pink-pale);
+    border-top-color: var(--pink); border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .fact-loading p { font-size: 16px; font-weight: 700; color: var(--pink); }
+
+  .fact-content { display: none; }
+  .fact-emoji { font-size: 48px; margin-bottom: 16px; }
+  .fact-text { font-size: 17px; font-weight: 600; line-height: 1.6; color: var(--text-main); margin-bottom: 24px; }
+  .fact-close {
+    background: var(--pink); color: white; border: none; border-radius: 30px;
+    padding: 12px 32px; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800;
+    cursor: pointer; transition: transform .2s;
+  }
+  .fact-close:hover { transform: scale(1.05); }
+
+  .toggle-row { display: flex; align-items: center; gap: 12px; margin-top: 24px; }
+  .toggle-label { font-size: 14px; font-weight: 700; color: var(--text-main); }
+  .toggle {
+    width: 52px; height: 28px; border-radius: 14px; background: var(--pink-light);
+    position: relative; cursor: pointer; transition: background .3s; border: none; padding: 0;
+  }
+  .toggle.on { background: var(--pink); }
+  .toggle::after {
+    content: ''; position: absolute; top: 4px; left: 4px;
+    width: 20px; height: 20px; border-radius: 50%; background: white;
+    transition: transform .25s cubic-bezier(.175,.885,.32,1.275);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  .toggle.on::after { transform: translateX(24px); }
+
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
+
+  @media (max-width: 600px) {
+    nav { padding: 12px 16px; }
+    .nav-links { display: none; }
+    .bottom-row { flex-direction: column; align-items: stretch; }
+    .save-btn, .fact-btn { text-align: center; width: 100%; }
+  }
+</style>
+</head>
+<body id="body">
+
+<nav>
+  <a class="nav-logo" href="#">
+    <span class="flower">🌸</span>
+    <span>Понять себя —<br>с первой записи!</span>
+  </a>
+  <div class="nav-links">
+
+<a href="statistics.html">
+Архив
+</a>
+
+<a href="mood-tracker-landing.html">
+Мой дневник
+</a>
+
+<a
+href="emotion-recorder-v2.html"
+class="active">
+
+Записать эмоцию
+
+</a>
+
+<a href="404.html">
+Личный кабинет
+</a>
+
+</div>
+  <button class="nav-x">X</button>
+</nav>
+
+<main>
+  <div class="message-box">
+    <div class="input-row">
+      <input type="text" id="msgInput" placeholder="Message" onkeydown="handleKey(event)">
+      <button class="mic-btn">🎙</button>
+    </div>
+    <div class="history-label">История запросов:</div>
+    <div class="history-list" id="historyList">
+      <div class="history-item">
+        <div><div class="history-text">Солнце, луна, погода</div><div class="history-underline"></div></div>
+        <div class="mood-dot" style="background:#FF3D7F;"></div>
+      </div>
+      <div class="history-item">
+        <div><div class="history-text">Трава, луг, жаба</div><div class="history-underline"></div></div>
+        <div class="mood-dot" style="background:#7FE87A;"></div>
+      </div>
+      <div class="history-item">
+        <div><div class="history-text">Я ем помидор!</div><div class="history-underline"></div></div>
+        <div class="mood-dot" style="background:#FF7B54;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-row">
+    <button class="save-btn" onclick="saveEntry()">Сохранить</button>
+    <button class="fact-btn" id="factBtn" onclick="showFact()">Узнать случайный факт</button>
+  </div>
+
+  <div class="toggle-row">
+    <button class="toggle" id="themeToggle" onclick="toggleTheme()"></button>
+    <span class="toggle-label">Темная тема</span>
+  </div>
+</main>
+
+<!-- FACT OVERLAY -->
+<div class="fact-overlay" id="factOverlay" onclick="closeFactOutside(event)">
+  <div class="fact-card" id="factCard">
+    <div class="fact-loading" id="factLoading">
+      <div class="spinner"></div>
+      <p>Подбираем интересный факт для Вас!</p>
+    </div>
+    <div class="fact-content" id="factContent">
+      <div class="fact-emoji" id="factEmoji">🧠</div>
+      <p class="fact-text" id="factText"></p>
+      <button class="fact-close" onclick="closeFact()">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+
+ 
+
+  const facts = [
+    { emoji: '🧠', text: 'Мозг обрабатывает эмоции быстрее, чем мысли — за 0.2 секунды, прежде чем ты успеваешь их осознать.' },
+    { emoji: '😊', text: 'Улыбка активирует те же зоны мозга, что и шоколад. Улыбнись — это работает даже если ты делаешь это специально.' },
+    { emoji: '💜', text: 'Люди, которые ведут дневник эмоций, в среднем на 23% менее тревожны по результатам исследований.' },
+    { emoji: '🌙', text: 'Эмоции, испытанные во сне, такие же настоящие, как наяву — мозг не делает между ними разницы.' },
+    { emoji: '🎵', text: 'Музыка — единственное, что активирует одновременно все зоны мозга. Именно поэтому она так сильно влияет на настроение.' },
+    { emoji: '🌸', text: 'Запах — самый мощный триггер памяти. Один аромат может мгновенно вернуть эмоцию из прошлого.' },
+    { emoji: '🤗', text: 'Объятия дольше 20 секунд вырабатывают окситоцин — гормон доверия и спокойствия.' },
+    { emoji: '✍️', text: 'Написание своих чувств вручную снижает уровень кортизола быстрее, чем разговор о них.' },
+  ];
+
+  const moodColors = ['#FF3D7F','#7FE87A','#FF7B54','#FFB3CC','#FFE566','#8B1A6B','#6FD8FF'];
+
+  function handleKey(e) { if (e.key === 'Enter') saveEntry(); }
+
+  function escapeHtml(str) {
+
+return str
+.replace(/&/g,'&amp;')
+.replace(/</g,'&lt;')
+.replace(/>/g,'&gt;');
+
+}
+
+  async function saveEntry() {
+
+const input=document.getElementById('msgInput');
+const text=input.value.trim();
+
+if(!text){
+alert("Введите текст");
+return;
+}
+
+try{
+
+const response=await fetch(
+"http://127.0.0.1:8000/analyze",
+{
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+text:text
+})
+
+}
+);
+
+const data=await response.json();
+
+if (data.message) {
+    document.getElementById('supportText').innerText = data.message;
+    document.getElementById('supportOverlay').classList.add('show');
+}
+
+document.body.style.backgroundColor=data.color;
+
+localStorage.setItem(
+"savedColor",
+data.color
+);
+
+
+const history=
+JSON.parse(
+localStorage.getItem(
+"moodHistory"
+)
+)||[];
+
+history.unshift({
+
+text:text,
+
+color:data.color,
+
+date:new Date().toLocaleDateString(
+'ru-RU'
+)
+
+});
+
+localStorage.setItem(
+"moodHistory",
+JSON.stringify(history)
+);
+
+loadHistory();
+
+input.value='';
+
+if (data.message) {
+    document.getElementById('supportText').innerText = data.message;
+    document.getElementById('supportOverlay').classList.add('show');
+}
+
+}catch(error){
+
+console.log("ОШИБКА:", error);
+
+alert(error);
+
+}
+
+}
+
+  function showFact() {
+    const overlay = document.getElementById('factOverlay');
+    const loading = document.getElementById('factLoading');
+    const content = document.getElementById('factContent');
+    overlay.classList.add('show');
+    loading.style.display = 'flex';
+    content.style.display = 'none';
+    setTimeout(() => {
+      const fact = facts[Math.floor(Math.random() * facts.length)];
+      document.getElementById('factEmoji').textContent = fact.emoji;
+      document.getElementById('factText').textContent = fact.text;
+      loading.style.display = 'none';
+      content.style.display = 'block';
+    }, 1800);
+  }
+
+  function closeFact() { document.getElementById('factOverlay').classList.remove('show'); }
+  function closeFactOutside(e) { if (e.target === document.getElementById('factOverlay')) closeFact(); }
+
+  function toggleTheme() {
+    document.getElementById('body').classList.toggle('dark');
+    document.getElementById('themeToggle').classList.toggle('on');
+  }
+
+  function loadHistory(){
+
+const history=
+JSON.parse(
+localStorage.getItem(
+"moodHistory"
+)
+)||[];
+
+const list=
+document.getElementById(
+"historyList"
+);
+
+list.innerHTML='';
+
+const today =
+new Date().toLocaleDateString(
+'ru-RU'
+);
+
+const filteredHistory =
+
+history.filter(entry=>
+
+entry.date &&
+entry.date===today
+
+);
+
+filteredHistory.forEach(
+(entry,index)=>{
+
+const item=
+document.createElement(
+"div"
+);
+
+item.className=
+"history-item";
+
+item.innerHTML=`
+<div>
+    <div class="history-text">
+        ${escapeHtml(entry.text)}
+    </div>
+
+    <div class="history-underline"></div>
+</div>
+
+<div style="
+display:flex;
+align-items:center;
+gap:12px;
+">
+
+<div
+class="mood-dot"
+style="
+background:${entry.color}">
+</div>
+
+<button
+onclick="deleteEntry(${index})"
+style="
+width:28px;
+height:28px;
+border:none;
+border-radius:50%;
+background:transparent;
+color:#B8B8B8;
+cursor:pointer;
+font-size:14px;
+transition:.2s;
+display:flex;
+align-items:center;
+justify-content:center;
+"
+onmouseover="
+this.style.background='#FFE8F0';
+this.style.color='#FF3D7F'
+"
+onmouseout="
+this.style.background='transparent';
+this.style.color='#B8B8B8'
+"
+>
+✕
+</button>
+
+</div>
+`;
+
+list.appendChild(item);
+
+});
+
+}
+
+loadHistory();
+
+const savedColor=
+localStorage.getItem(
+"savedColor"
+);
+
+if(savedColor){
+
+document.body.style.backgroundColor=
+savedColor;
+
+}
+function showFactMessage(message){
+
+document.getElementById(
+'factOverlay'
+).classList.add(
+'show'
+);
+
+document.getElementById(
+'factLoading'
+).style.display='none';
+
+document.getElementById(
+'factContent'
+).style.display='block';
+
+document.getElementById(
+'factEmoji'
+).textContent='🌸';
+
+document.getElementById(
+'factText'
+).textContent=
+message;
+
+}
+
+function deleteEntry(index){
+
+const history =
+JSON.parse(
+localStorage.getItem(
+"moodHistory"
+)
+) || [];
+
+history.splice(index,1);
+
+localStorage.setItem(
+"moodHistory",
+JSON.stringify(history)
+);
+
+loadHistory();
+
+}
+</script>
+
+<style>
+  #supportOverlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.5); z-index: 9999;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  #supportOverlay.show {
+    display: flex !important;
+  }
+  .support-modal {
+    background: white; padding: 40px; border-radius: 28px;
+    max-width: 450px; width: 90%; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2); position: relative;
+    animation: slideUp .3s cubic-bezier(.175,.885,.32,1.275);
+  }
+  .support-close {
+    position: absolute; top: 15px; right: 20px; background: none;
+    border: none; font-size: 24px; cursor: pointer; color: #aaa;
+  }
+  .support-close:hover { color: #FF3D7F; }
+</style>
+
+<div id="supportOverlay" onclick="if(event.target===this) this.classList.remove('show')">
+  <div class="support-modal">
+    <button class="support-close" onclick="document.getElementById('supportOverlay').classList.remove('show')">✕</button>
+    <div style="font-size: 50px; margin-bottom: 10px;">✨</div>
+    <div style="font-size: 22px; font-weight: 800; color: #FF3D7F; margin-bottom: 15px; font-family: 'Unbounded', sans-serif;">Специально для тебя:</div>
+    <div id="supportText" style="font-size: 16px; line-height: 1.6; color: #333; font-weight: 600;"></div>
+  </div>
+</div>
+
+</body>
+</html>

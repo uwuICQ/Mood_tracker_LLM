@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — Not Found | Mood Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #EFEFEF;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Декоративные элементы */
+  .deco {
+    position: absolute;
+    pointer-events: none;
+  }
+
+  .deco-exclaim {
+    top: 60px; left: 60px;
+    width: 80px; height: 80px;
+  }
+  .deco-exclaim svg { width: 100%; height: 100%; }
+
+  .deco-question {
+    top: 70px; left: 170px;
+    width: 70px; height: 70px;
+  }
+  .deco-question svg { width: 100%; height: 100%; }
+
+  .deco-star1 {
+    top: 60px; right: 90px;
+    color: #FF3D7F;
+    font-size: 52px;
+    font-weight: 900;
+    font-family: 'Unbounded', sans-serif;
+    line-height: 1;
+  }
+  .deco-star2 {
+    top: 115px; right: 55px;
+    color: #8B1A6B;
+    font-size: 36px;
+    font-family: 'Unbounded', sans-serif;
+    line-height: 1;
+  }
+
+  /* Main card */
+  .card {
+    background: #FFCFE0;
+    border-radius: 32px;
+    padding: 60px 80px 50px;
+    text-align: center;
+    position: relative;
+    width: 680px;
+    max-width: 90vw;
+    animation: pop .5s cubic-bezier(.175,.885,.32,1.275) both;
+  }
+  @keyframes pop {
+    from { transform: scale(.85); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+
+  .not-found-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .num {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(80px, 14vw, 140px);
+    font-weight: 900;
+    color: #555;
+    line-height: 1;
+    letter-spacing: -4px;
+  }
+
+  .flower-icon {
+    font-size: clamp(70px, 12vw, 120px);
+    animation: wobble 2s ease-in-out infinite;
+  }
+  @keyframes wobble {
+    0%, 100% { transform: rotate(-5deg) scale(1); }
+    50%       { transform: rotate(5deg) scale(1.05); }
+  }
+
+  .not-found-label {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(14px, 2.5vw, 22px);
+    font-weight: 700;
+    color: #555;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: -8px;
+    text-align: right;
+    padding-right: 20px;
+  }
+
+  .caption {
+    margin-top: 32px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+    line-height: 1.5;
+    text-align: left;
+  }
+  .caption a {
+    color: #FF3D7F;
+    text-decoration: none;
+  }
+  .caption a:hover { text-decoration: underline; }
+
+  /* Starburst exclamation (SVG drawn inline) */
+</style>
+</head>
+<body>
+
+<!-- Deco: starburst "!" -->
+<div class="deco deco-exclaim">
+  <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="40,2 47,15 62,8 58,24 74,26 64,38 76,50 60,52 62,68 47,63 40,78 33,63 18,68 20,52 4,50 16,38 6,26 22,24 18,8 33,15" fill="white" stroke="#FF3D7F" stroke-width="3"/>
+    <text x="40" y="52" text-anchor="middle" font-family="Unbounded,sans-serif" font-size="28" font-weight="900" fill="#FF3D7F">!</text>
+  </svg>
+</div>
+
+<!-- Deco: circle "?" -->
+<div class="deco deco-question">
+  <svg viewBox="0 0 70 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="35" cy="35" r="32" stroke="#FF3D7F" stroke-width="3" fill="white"/>
+    <text x="35" y="47" text-anchor="middle" font-family="Unbounded,sans-serif" font-size="28" font-weight="700" fill="#FF3D7F">?</text>
+  </svg>
+</div>
+
+<!-- Deco: asterisks top-right -->
+<div class="deco deco-star1">✳</div>
+<div class="deco deco-star2">✳</div>
+
+<!-- Main card -->
+<div class="card">
+  <div class="not-found-num">
+    <span class="num">4</span>
+    <span class="flower-icon">🌸</span>
+    <span class="num">4</span>
+  </div>
+  <div class="not-found-label">NOT FOUND</div>
+
+  <p class="caption">
+    Не переживайте, мы скоро <a href="mood-tracker-landing.html">всё починим!</a><br>
+    Наша команда уже трудится над задачей :)
+  </p>
+</div>
+
+</body>
+</html>

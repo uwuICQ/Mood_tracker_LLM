@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Регистрация | Mood Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #FF3D7F;
+    --pink-mid: #FF6FA8;
+    --pink-pale: #FFE8F0;
+    --dark: #1A1A2E;
+    --white: #FFFFFF;
+    --gray-bg: #F2F2F2;
+    --border: #E8E8E8;
+    --text: #333;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--gray-bg);
+    min-height: 100vh;
+    color: var(--text);
+  }
+
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 32px; background: white; border-bottom: 1px solid var(--border);
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .nav-logo .flower { font-size: 36px; }
+  .nav-logo span { font-size: 13px; font-weight: 700; color: var(--pink); }
+  .nav-x {
+    width: 40px; height: 40px; border-radius: 12px; background: var(--dark);
+    color: white; font-family: 'Unbounded', sans-serif; font-size: 14px; font-weight: 900;
+    border: none; cursor: pointer;
+  }
+
+  main {
+    max-width: 640px; margin: 0 auto; padding: 40px 20px;
+    position: relative;
+  }
+
+  .page-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(42px, 10vw, 80px);
+    font-weight: 900;
+    color: var(--pink);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 24px;
+    /* Outlined text effect */
+    -webkit-text-stroke: 2px var(--pink);
+  }
+
+  .form-card {
+    background: #FFCFE0;
+    border-radius: 28px;
+    padding: 36px 40px 40px;
+    box-shadow: 0 4px 24px rgba(255,61,127,0.1);
+  }
+
+  .form-group { margin-bottom: 20px; }
+  .form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 8px;
+  }
+  .form-group input {
+    width: 100%;
+    background: white;
+    border: 2px solid transparent;
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .form-group input:focus {
+    border-color: var(--pink);
+    box-shadow: 0 0 0 4px rgba(255,61,127,0.1);
+  }
+  .form-group input::placeholder { color: #CCC; }
+
+  .submit-btn {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 18px;
+    background: linear-gradient(135deg, var(--pink-mid), var(--pink));
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    border: none;
+    border-radius: 40px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(255,61,127,0.4);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(255,61,127,0.5);
+  }
+  .submit-btn:active { transform: scale(.98); }
+
+  /* Success state */
+  .success-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(255,255,255,0.95);
+    z-index: 100;
+    align-items: center; justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    animation: fadeIn .3s ease;
+  }
+  .success-overlay.show { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .success-icon { font-size: 64px; animation: bounce .5s cubic-bezier(.175,.885,.32,1.275); }
+  @keyframes bounce { from { transform: scale(0); } to { transform: scale(1); } }
+  .success-title {
+    font-family: 'Unbounded', sans-serif; font-size: 24px; font-weight: 900;
+    color: var(--pink); text-align: center;
+  }
+  .success-sub { font-size: 15px; font-weight: 600; color: #888; text-align: center; }
+  .success-btn {
+    background: var(--pink); color: white; border: none; border-radius: 30px;
+    padding: 14px 40px; font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 800;
+    cursor: pointer; margin-top: 8px; transition: transform .2s;
+  }
+  .success-btn:hover { transform: scale(1.05); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#">
+    <span class="flower">🌸</span>
+    <span>Понять себя —<br>с первой записи!</span>
+  </a>
+  <button class="nav-x">X</button>
+</nav>
+
+<main>
+  <h1 class="page-title">Регистрация</h1>
+
+  <div class="form-card">
+    <div class="form-group">
+      <label>ФИО:</label>
+      <input type="text" id="fio" placeholder="Иванова Мария Александровна">
+    </div>
+    <div class="form-group">
+      <label>Дата рождения:</label>
+      <input type="date" id="dob">
+    </div>
+    <div class="form-group">
+      <label>Номер телефона:</label>
+      <input type="tel" id="phone" placeholder="+7 (___) ___-__-__" oninput="formatPhone(this)">
+    </div>
+    <div class="form-group">
+      <label>Ник:</label>
+      <input type="text" id="nick" placeholder="@твой_ник">
+    </div>
+    <button class="submit-btn" onclick="register()">Зарегистрироваться</button>
+  </div>
+</main>
+
+<!-- Success -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-icon">🌸</div>
+  <div class="success-title">Добро пожаловать!</div>
+  <div class="success-sub">Регистрация прошла успешно.<br>Начни свой первый дневник прямо сейчас.</div>
+  <button class="success-btn" onclick="document.getElementById('successOverlay').classList.remove('show')">Начать →</button>
+</div>
+
+<script>
+  function formatPhone(input) {
+    let v = input.value.replace(/\D/g, '');
+    if (v.startsWith('8')) v = '7' + v.slice(1);
+    if (!v.startsWith('7')) v = '7' + v;
+    v = v.slice(0, 11);
+    let formatted = '+7';
+    if (v.length > 1) formatted += ' (' + v.slice(1, 4);
+    if (v.length >= 4) formatted += ') ' + v.slice(4, 7);
+    if (v.length >= 7) formatted += '-' + v.slice(7, 9);
+    if (v.length >= 9) formatted += '-' + v.slice(9, 11);
+    input.value = formatted;
+  }
+
+  function register() {
+    const fio = document.getElementById('fio').value.trim();
+    const dob = document.getElementById('dob').value;
+    const phone = document.getElementById('phone').value.trim();
+    const nick = document.getElementById('nick').value.trim();
+
+    if (!fio || !dob || !phone || !nick) {
+      // highlight empty
+      ['fio','dob','phone','nick'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el.value.trim()) {
+          el.style.borderColor = '#FF3D7F';
+          el.addEventListener('input', () => el.style.borderColor = '', { once: true });
+        }
+      });
+      return;
+    }
+    document.getElementById('successOverlay').classList.add('show');
+  }
+</script>
+</body>
+</html>

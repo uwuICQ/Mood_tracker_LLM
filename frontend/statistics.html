@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Моя статистика | Mood Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #FF3D7F;
+    --pink-mid: #FF6FA8;
+    --pink-pale: #FFE8F0;
+    --dark: #1A1A2E;
+    --gray-bg: #F2F2F2;
+    --white: #FFFFFF;
+    --border: #E8E8E8;
+    --text: #333;
+
+    --bg: var(--gray-bg);
+    --card-bg: var(--white);
+    --text-main: var(--text);
+  }
+  body.dark {
+    --bg: #1A1A2E;
+    --card-bg: #252540;
+    --text-main: #F0F0F0;
+    --border: #3A3A5C;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text-main); min-height: 100vh; transition: background .3s, color .3s; }
+
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 32px; background: var(--card-bg); border-bottom: 1px solid var(--border);
+    transition: background .3s, border-color .3s;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .nav-logo .flower { font-size: 36px; }
+  .nav-logo span { font-size: 13px; font-weight: 700; color: var(--pink); }
+  .nav-links { display: flex; gap: 8px; }
+  .nav-links a {
+    text-decoration: none; font-size: 13px; font-weight: 700; color: var(--text-main);
+    padding: 8px 18px; border-radius: 24px; transition: background .2s, color .2s;
+  }
+  .nav-links a:hover { background: var(--pink-pale); color: var(--pink); }
+  .nav-links a.active { background: var(--pink); color: white; }
+  .nav-x {
+    width: 40px; height: 40px; border-radius: 12px; background: var(--dark);
+    color: white; font-family: 'Unbounded', sans-serif; font-size: 14px; font-weight: 900;
+    border: none; cursor: pointer;
+  }
+
+  main { max-width: 960px; margin: 32px auto; padding: 0 20px; }
+
+  .page-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  /* STATS */
+  .stats-section h2 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 18px; font-weight: 900;
+    color: var(--pink); margin-bottom: 24px;
+  }
+
+  .emotion-row {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 18px;
+  }
+  .emotion-label {
+    font-size: 14px; font-weight: 700; color: var(--text-main);
+    width: 72px; flex-shrink: 0;
+  }
+  .bar-track {
+    display: flex; gap: 4px; flex: 1;
+  }
+  .bar-cell {
+    width: 30px; height: 30px; border-radius: 6px;
+    background: #E8E8E8; transition: background .3s;
+    position: relative;
+    overflow: hidden;
+  }
+  body.dark .bar-cell { background: #3A3A5C; }
+  .bar-cell.filled { }
+  .bar-cell.filled::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: inherit;
+    animation: fillIn .4s ease both;
+  }
+  @keyframes fillIn { from { transform: scaleX(0); transform-origin: left; } to { transform: scaleX(1); } }
+
+  /* HISTORY */
+  .history-section { }
+  .history-card {
+    background: var(--pink-pale);
+    border-radius: 24px; padding: 28px;
+    transition: background .3s;
+  }
+  body.dark .history-card { background: rgba(255,61,127,0.1); }
+  .history-card h2 {
+    font-family: 'Unbounded', sans-serif; font-size: 16px; font-weight: 900;
+    color: var(--pink); text-align: center; margin-bottom: 20px;
+  }
+  .history-list-box {
+    border: 2px solid white; border-radius: 18px; overflow: hidden;
+    background: white; margin-bottom: 20px;
+    transition: background .3s, border-color .3s;
+  }
+  body.dark .history-list-box { background: var(--card-bg); border-color: var(--border); }
+
+  .history-entry {
+    padding: 16px 18px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px; font-weight: 600; color: #444; line-height: 1.5;
+    transition: background .15s;
+    cursor: pointer;
+  }
+  body.dark .history-entry { color: #C0C0D0; border-color: var(--border); }
+  .history-entry:last-child { border-bottom: none; }
+  .history-entry:hover { background: var(--pink-pale); }
+  body.dark .history-entry:hover { background: rgba(255,61,127,0.08); }
+
+  .download-btn {
+    display: block; width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--pink-mid), var(--pink));
+    color: white; font-family: 'Nunito', sans-serif;
+    font-size: 17px; font-weight: 800;
+    border: none; border-radius: 40px; cursor: pointer;
+    box-shadow: 0 4px 20px rgba(255,61,127,0.35);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .download-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(255,61,127,0.45); }
+
+  /* Toggle */
+  .bottom-row { margin-top: 28px; display: flex; align-items: center; gap: 12px; }
+  .toggle-label { font-size: 14px; font-weight: 700; color: var(--text-main); }
+  .toggle {
+    width: 52px; height: 28px; border-radius: 14px; background: var(--pink-light, #FFB3CC);
+    position: relative; cursor: pointer; transition: background .3s; border: none; padding: 0;
+    --pink-light: #FFB3CC;
+  }
+  .toggle.on { background: var(--pink); }
+  .toggle::after {
+    content: ''; position: absolute; top: 4px; left: 4px;
+    width: 20px; height: 20px; border-radius: 50%; background: white;
+    transition: transform .25s cubic-bezier(.175,.885,.32,1.275);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  .toggle.on::after { transform: translateX(24px); }
+
+  @media (max-width: 680px) {
+    .page-grid { grid-template-columns: 1fr; }
+    nav { padding: 12px 16px; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body id="body">
+
+<nav>
+  <a class="nav-logo" href="#">
+    <span class="flower">🌸</span>
+    <span>Понять себя —<br>с первой записи!</span>
+  </a>
+  <div class="nav-links">
+
+<a href="statistics.html"
+class="active">
+Архив
+</a>
+
+<a href="mood-tracker-landing.html">
+Мой дневник
+</a>
+
+<a href="emotion-recorder-v2.html">
+Записать эмоцию
+</a>
+
+<a href="registration.html">
+Личный кабинет
+</a>
+
+</div>
+  <button class="nav-x">X</button>
+</nav>
+
+<main>
+  <div class="page-grid">
+    <!-- LEFT: Stats -->
+    <div class="stats-section">
+      <h2>Моя статистика:</h2>
+      <div id="emotionBars"></div>
+    </div>
+
+    <!-- RIGHT: History -->
+    <div class="history-section">
+      <div class="history-card">
+        <h2>История записей:</h2>
+        <div
+          class="history-list-box"
+          id="historyBox">
+
+        </div>
+        <button class="download-btn" onclick="downloadDiary()">Скачать дневник</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-row">
+    <button class="toggle" id="themeToggle" onclick="toggleTheme()"></button>
+    <span class="toggle-label">Темная тема</span>
+  </div>
+</main>
+
+<script>
+  let emotions=[];
+  const TOTAL = 10;
+
+  function renderBars() {
+    const container = document.getElementById('emotionBars');
+    emotions.forEach((em, idx) => {
+      const row = document.createElement('div');
+      row.className = 'emotion-row';
+      const label = document.createElement('div');
+      label.className = 'emotion-label';
+      label.textContent = em.label;
+      const track = document.createElement('div');
+      track.className = 'bar-track';
+      for (let i = 0; i < TOTAL; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'bar-cell';
+        if (i < em.count) {
+          cell.classList.add('filled');
+          cell.style.background = em.color;
+          cell.style.animationDelay = `${idx * 0.1 + i * 0.04}s`;
+        }
+        track.appendChild(cell);
+      }
+      row.appendChild(label);
+      row.appendChild(track);
+      container.appendChild(row);
+    });
+  }
+
+function loadDiaryHistory(){
+
+const history=
+JSON.parse(
+localStorage.getItem(
+"moodHistory"
+)
+)||[];
+
+const box=
+document.getElementById(
+"historyBox"
+);
+
+box.innerHTML='';
+
+history
+.slice(0,3)
+.forEach(entry=>{
+
+const div=
+document.createElement(
+"div"
+);
+
+div.className=
+"history-entry";
+
+div.innerHTML=`
+
+${entry.date || ""}
+
+<br><br>
+
+${entry.text}
+
+`;
+
+box.appendChild(div);
+
+});
+
+}
+
+async function loadStats() {
+    try {
+        const response = await fetch("http://127.0.0.1:8000/stats");
+        const data = await response.json();
+        console.log("Данные из бэкенда:", data); // Посмотри в консоль, что там пришло!
+
+        emotions = [
+    { label: 'Радость', count: data['радость'] || data['joy'] || 0, color: '#F5C842' },
+    { label: 'Грусть', count: data['грусть'] || data['sadness'] || 0, color: '#464696' },
+    { label: 'Любовь', count: data['любовь'] || data['love'] || 0, color: '#FF3D7F' },
+    { label: 'Гнев', count: data['гнев'] || data['anger'] || 0, color: '#E53935' },
+    { label: 'Спокойствие', count: data['спокойствие'] || data['calm'] || 0, color: '#5AC45A' }
+        ];
+
+        renderBars(); // Это функция Ани, которая рисует шкалы
+    } catch (error) {
+        console.log("Ошибка загрузки:", error);
+    }
+}
+
+
+
+  loadStats();
+
+  loadDiaryHistory();
+
+  function toggleTheme() {
+    document.getElementById('body').classList.toggle('dark');
+    document.getElementById('themeToggle').classList.toggle('on');
+  }
+
+  function downloadDiary() {
+    const content = `МОЙ ДНЕВНИК ЭМОЦИЙ\n${'='.repeat(30)}\n\nЗаписи:\n\n` +
+      document.querySelectorAll('.history-entry').length + ' записей в архиве.\n\n' +
+      'Статистика:\n' + emotions.map(e => `${e.label}: ${e.count}/${TOTAL}`).join('\n');
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'мой-дневник.txt';
+    a.click();
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mood Tracker — Перестань носить хаос в голове</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #FF3D7F;
+    --pink-light: #FFB3CC;
+    --pink-pale: #FFE8F0;
+    --pink-mid: #FF6FA8;
+    --purple: #8B1A6B;
+    --yellow: #FFE566;
+    --green: #7FE87A;
+    --coral: #FF7B54;
+    --white: #FFFFFF;
+    --gray-bg: #F5F5F5;
+    --dark: #1A1A2E;
+    --text: #333;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--white);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 32px;
+    background: white;
+    border-bottom: 1px solid #f0f0f0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--pink);
+    text-decoration: none;
+  }
+  .nav-logo .flower { font-size: 28px; }
+  .nav-links { display: flex; gap: 24px; }
+  .nav-links a {
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--pink); }
+  .nav-links a.active {
+    background: var(--pink);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+  }
+  .nav-btn {
+    background: var(--dark);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform .15s;
+  }
+  .nav-btn:hover { transform: scale(1.05); }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #FF3D7F 0%, #FF6FA8 40%, #FF8FB3 70%, #FFB3CC 100%);
+    padding: 60px 40px 80px;
+    position: relative;
+    overflow: hidden;
+    min-height: 520px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 260px; height: 260px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: 20%;
+    width: 320px; height: 320px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 50%;
+  }
+  .hero-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 900;
+    color: white;
+    line-height: 1.1;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-title .tracker { color: var(--yellow); }
+  .hero-subtitle {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 6px;
+    position: relative; z-index: 1;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 32px;
+    position: relative;
+    z-index: 1;
+    max-width: 700px;
+  }
+  .hero-card {
+    background: rgba(255,255,255,0.22);
+    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    padding: 20px 24px;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    position: relative;
+  }
+  .hero-card .star {
+    position: absolute;
+    top: 12px; right: 14px;
+    font-size: 18px;
+    color: var(--yellow);
+  }
+  .hero-card h3 { font-size: 16px; line-height: 1.3; margin-bottom: 4px; }
+  .hero-card-pink {
+    background: white;
+    color: var(--pink);
+    grid-column: span 1;
+  }
+  .hero-card-pink h3 { color: var(--text); }
+  .hero-card-pink p { color: #888; font-size: 12px; font-weight: 600; }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--dark);
+    color: white;
+    padding: 14px 28px;
+    border-radius: 30px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    text-decoration: none;
+    margin-top: 16px;
+    transition: transform .2s, box-shadow .2s;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .btn-pink {
+    background: var(--pink);
+    color: white;
+  }
+
+  .hero-balloon {
+    position: absolute;
+    right: 80px;
+    top: 40px;
+    font-size: 140px;
+    opacity: 0.9;
+    animation: float 3s ease-in-out infinite;
+    z-index: 1;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  /* TAGLINE */
+  .tagline {
+    padding: 60px 40px;
+    text-align: left;
+  }
+  .tagline h2 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(28px, 4vw, 52px);
+    font-weight: 900;
+    line-height: 1.15;
+    color: var(--dark);
+  }
+  .tagline h2 span { color: var(--pink); }
+
+  /* HOW IT WORKS */
+  .how {
+    background: var(--gray-bg);
+    padding: 60px 40px;
+  }
+  .how h2 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(22px, 3vw, 38px);
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 48px;
+    color: var(--dark);
+  }
+  .how-steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .how-steps::before {
+    content: '';
+    position: absolute;
+    top: 28px; left: 10%; right: 10%;
+    height: 3px;
+    background: repeating-linear-gradient(90deg, var(--pink) 0, var(--pink) 8px, transparent 8px, transparent 16px);
+  }
+  .step {
+    text-align: center;
+    position: relative;
+  }
+  .step-num {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: white;
+    margin: 0 auto 16px;
+    position: relative;
+    z-index: 1;
+  }
+  .step:nth-child(1) .step-num { background: #FF3D7F; }
+  .step:nth-child(2) .step-num { background: #FF6FA8; }
+  .step:nth-child(3) .step-num { background: #FF3D7F; }
+  .step:nth-child(4) .step-num { background: #8B1A6B; }
+  .step-label {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 6px;
+  }
+  .step-desc { font-size: 12px; color: #888; font-weight: 600; line-height: 1.4; }
+
+  /* REVIEWS */
+  .reviews { padding: 60px 40px; }
+  .reviews h2 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(20px, 3vw, 36px);
+    font-weight: 900;
+    margin-bottom: 32px;
+    color: var(--dark);
+  }
+  .review-card {
+    background: var(--pink-pale);
+    border-radius: 24px;
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 20px;
+    align-items: start;
+    max-width: 800px;
+  }
+  .review-avatar {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    font-size: 32px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--pink-light);
+  }
+  .review-name {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 2px;
+  }
+  .review-meta { font-size: 12px; color: #888; font-weight: 600; margin-bottom: 10px; }
+  .review-text { font-size: 14px; line-height: 1.6; color: #444; }
+
+  /* INFLUENCER */
+  .influencer {
+    background: linear-gradient(135deg, #FF3D7F, #8B1A6B);
+    padding: 48px 40px;
+    border-radius: 32px;
+    margin: 0 40px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    color: white;
+  }
+  .influencer-quote { font-size: 18px; font-weight: 700; line-height: 1.5; max-width: 500px; }
+  .influencer-quote em { font-style: normal; color: var(--yellow); }
+  .influencer-stats { text-align: right; }
+  .influencer-name {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+  .influencer-sub { font-size: 12px; opacity: 0.8; margin-bottom: 12px; }
+  .influencer-count {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--yellow);
+  }
+
+  /* CTA */
+  .cta {
+    background: var(--pink-pale);
+    padding: 60px 40px;
+    text-align: center;
+    border-top: 3px dashed var(--pink-light);
+  }
+  .cta-excl {
+    font-size: 48px;
+    display: inline-block;
+    background: var(--pink);
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    line-height: 64px;
+    margin-bottom: 16px;
+  }
+  .cta h2 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(20px, 3vw, 36px);
+    font-weight: 900;
+    margin-bottom: 12px;
+    color: var(--dark);
+  }
+  .cta h2 em { font-style: normal; color: var(--pink); }
+  .cta-email {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(14px, 2.5vw, 22px);
+    font-weight: 700;
+    color: var(--pink);
+  }
+  .cta p { color: #888; font-size: 13px; margin-top: 8px; }
+
+  /* EMOTION TAGS */
+  .emotion-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 32px;
+  }
+  .tag {
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 700;
+    border: 2px solid;
+  }
+  .tag-joy { background: var(--yellow); border-color: var(--yellow); color: var(--dark); }
+  .tag-sad { background: white; border-color: var(--pink-light); color: var(--pink); }
+  .tag-love { background: var(--pink-light); border-color: var(--pink); color: white; }
+  .tag-fear { background: #EEE; border-color: #CCC; color: #555; }
+  .tag-company { background: white; border-color: var(--pink-light); color: var(--pink); }
+
+  /* ASTERISK DECO */
+  .deco-star {
+    display: inline-block;
+    color: var(--pink);
+    font-size: 24px;
+    margin: 0 8px;
+    animation: spin 4s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  footer {
+    background: var(--dark);
+    padding: 20px 40px;
+    text-align: center;
+    color: rgba(255,255,255,0.4);
+    font-size: 12px;
+  }
+
+  @media (max-width: 700px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero-balloon { display: none; }
+    .how-steps { grid-template-columns: 1fr 1fr; }
+    .influencer { flex-direction: column; margin: 0 20px 40px; }
+    nav { padding: 12px 16px; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <span class="flower">🌸</span>
+    <span>Понять себя —<br>с первой записи!</span>
+  </a>
+  <div class="nav-links">
+    <div class="nav-links">
+
+<a href="statistics.html">
+Архив
+</a>
+
+<a href="mood-tracker-landing.html">
+Мой дневник
+</a>
+
+<a
+href="emotion-recorder-v2.html"
+class="active">
+Записать эмоцию
+</a>
+
+<a href="404.html">
+Личный кабинет
+</a>
+
+</div>
+
+<button class="nav-btn">✕</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="hero-subtitle">Перестань носить хаос в голове</p>
+  <h1 class="hero-title">MOOD<br>TR<span class="tracker">ACk</span>ER</h1>
+  
+  <div class="hero-grid">
+    <div class="hero-card hero-card-pink">
+      <h3>Делаем понятно, интересно и ярко</h3>
+      <p>Добавь красок в жизнь</p>
+      <br>
+      <a href="emotion-recorder-v2.html" class="btn-primary" style="font-size:13px; padding:10px 20px;">Сделать запись ↗</a>
+    </div>
+    <div class="hero-card" style="background: rgba(255,255,255,0.15);">
+      <span class="star">✦</span>
+      <h3>Помнить, что-то чувствовать</h3>
+    </div>
+    <div class="hero-card" style="background: rgba(255,255,255,0.12);">
+      <span class="star">✦</span>
+      <h3>Скажи «да» своему личному помощнику!</h3>
+    </div>
+    <div class="hero-card" style="background: rgba(139,26,107,0.5);">
+      <span class="star" style="color:white;">✦</span>
+      <h3>Быстрее, чем чат с психологом</h3>
+    </div>
+  </div>
+
+  <a href="emotion-recorder-v2.html" class="btn-primary btn-pink" style="margin-top: 24px;">Начать путь к себе!</a>
+
+  <div class="hero-balloon">💗</div>
+</section>
+
+<!-- TAGLINE -->
+<section class="tagline">
+  <h2>Напиши.<br><span>ИИ поймёт.</span><br>Фон покажет.</h2>
+  
+  <div class="emotion-tags" style="margin-top: 24px;">
+    <span class="tag tag-joy">Радость</span>
+    <span class="tag tag-sad">Грусть</span>
+    <span class="tag tag-love">Влюблённость</span>
+    <span class="tag tag-fear">Страх</span>
+    <span class="tag tag-company">Сопричастность</span>
+    <span class="tag tag-sad" style="background:var(--pink-pale);">Счастье и печаль</span>
+  </div>
+  
+  <div style="margin-top:28px; background:var(--pink-pale); border-radius:20px; padding:20px 28px; display:inline-block; max-width:360px;">
+    <p style="font-size:13px; font-weight:700; color:#888;">Цветовой<br>паспорт</p>
+    <div style="display:flex; gap:8px; margin-top:10px;">
+      <div style="width:40px;height:40px;border-radius:50%;background:#FF3D7F;"></div>
+      <div style="width:40px;height:40px;border-radius:50%;background:#FFB3CC;"></div>
+      <div style="width:40px;height:40px;border-radius:50%;background:#8B1A6B;"></div>
+      <div style="width:40px;height:40px;border-radius:50%;background:#FFE566;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how">
+  <h2>Как это работает?</h2>
+  <div class="how-steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-label">Регистрация*</div>
+      <div class="step-desc">по номеру телефона<br>Заходи на сайт под своим логином</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-label">Дневник</div>
+      <div class="step-desc">онлайн-формат<br>Пиши, как пишешь другу</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-label">ИИ</div>
+      <div class="step-desc">новейшие технологии<br>Анализирует твой текст</div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-label">Результат</div>
+      <div class="step-desc">за секунды<br>Радуйся результату</div>
+    </div>
+  </div>
+  <p style="text-align:center; font-size:11px; color:#aaa; margin-top:24px;">*Для сохранения прогресса и истории необходима регистрация.</p>
+</section>
+
+<!-- REVIEWS -->
+<section class="reviews">
+  <div class="review-card">
+    <div class="review-avatar">🦊</div>
+    <div>
+      <div class="review-name">Ирочка</div>
+      <div class="review-meta">22 года, Москва</div>
+      <div class="review-text">Подруга посоветовала этот дневник. Сказала: «Просто пиши про свой день». Я думала, это очередная задумка очередного тренера настроения. И я ошиблась. Первый раз что-то отложилось. Я нажала «сохранить» и закрыла. Фон стал тёмно-серым. Ну ладно, думаю, пусть. В четвёртый день я уже написала 30 слов. Каждый раз краски фона в светло-серый. Это просто работает!</div>
+    </div>
+  </div>
+
+  <div class="review-card" style="background: #FFF0F5;">
+    <div class="review-avatar">😊</div>
+    <div>
+      <div class="review-name">Павел</div>
+      <div class="review-meta">42 года, Тамбов</div>
+      <div class="review-text">Я никогда не вёл дневник. Даже в школе. Думаю — зачем? Работа, Дом. Дети. Родители. Всё смешалось в какой-то ком. Я просто написал: «Я устал». И нажал кнопку. Фон стал светло-серым. Я и добавил. Я вообще не верил, что это работает. Думал, просто рандом. Но потом ВТЯНУЛСЯ!</div>
+    </div>
+  </div>
+</section>
+
+<!-- INFLUENCER -->
+<div class="influencer">
+  <div>
+    <div class="influencer-quote">
+      <em>«Ты ведь знаешь, что у меня много концертов и туров. Я всегда переживаю»</em>
+    </div>
+    <div class="influencer-quote" style="margin-top: 12px; font-size: 14px; opacity: .8;">Я тоже переживаю</div>
+  </div>
+  <div class="influencer-stats">
+    <div class="influencer-name">Милана<br>Стар</div>
+    <div class="influencer-sub">певица и видеоблогер</div>
+    <div class="influencer-count">>3,2б мнп<br><span style="font-size:13px; font-weight:600; color:rgba(255,255,255,.7);">подписчиков</span></div>
+  </div>
+</div>
+
+<!-- CTA -->
+<section class="cta">
+  <div>
+    <span style="font-size:40px;">❓</span>
+  </div>
+  <h2>Напиши, если<br>остались вопросы:<br><em>✦</em></h2>
+  <div class="cta-email">neotvechaem@email.ru</div>
+  <p>Побитовые сливки team</p>
+</section>
+
+<footer>
+  © 2024 Mood Tracker — Перестань носить хаос в голове
+</footer>
+
+</body>
+</html>
