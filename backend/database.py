@@ -292,8 +292,8 @@ def get_all_entries(db: SessionLocal = None) -> list:
             db.close()
 
 
-def get_entry_by_id(entry_id: int, db: SessionLocal = None) -> dict | None:
-
+def get_entry_by_id(entry_id: int, db: SessionLocal = None):
+    
     own_session = False
     if db is None:
         db = SessionLocal()

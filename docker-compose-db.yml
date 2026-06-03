@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mood_tracker_postgres
+    environment:
+      POSTGRES_USER: mooduser
+      POSTGRES_PASSWORD: moodpass
+      POSTGRES_DB: moodtracker
+    ports:
+      - "5432:5432"
