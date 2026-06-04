@@ -1,0 +1,101 @@
+name: Create Release Tag
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  tag-and-release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+
+    steps:
+      # 1. Скачиваем код
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 2. Получаем информацию о PR
+      - name: Get PR metadata
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+            const labels = pr.data.labels.map(l => l.name.toLowerCase());
+            core.setOutput('pr_title', pr.data.title);
+            core.setOutput('labels', labels.join(','));
+            core.setOutput('has_major_label', labels.includes('major') || labels.includes('breaking') ? 'true' : 'false');
+
+      # 3. Получаем последний тег
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          git fetch --tags
+          LATEST_TAG=$(git tag --sort=-v:refname | head -n 1)
+          if [[ -z "$LATEST_TAG" ]]; then
+            echo "latest_tag=v0.0.0" >> $GITHUB_OUTPUT
+          else
+            echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          fi
+
+      # 4. Вычисляем новую версию
+      - name: Bump version
+        id: bump
+        run: |
+          LATEST=${{ steps.get_tag.outputs.latest_tag }}
+          VERSION=${LATEST#v}
+          IFS='.' read -r major minor patch <<< "$VERSION"
+          
+          IS_MAJOR="${{ steps.pr.outputs.has_major_label }}"
+          
+          if [[ "$IS_MAJOR" == "true" ]]; then
+            NEW_MAJOR=$((major + 1))
+            NEW_TAG="v$NEW_MAJOR.0.0"
+            echo "bump_type=major" >> $GITHUB_OUTPUT
+          else
+            NEW_PATCH=$((patch + 1))
+            NEW_TAG="v$major.$minor.$NEW_PATCH"
+            echo "bump_type=minor/patch" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+
+      # 5. Создаём тег
+      - name: Create and push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.bump.outputs.new_tag }}
+          git push origin ${{ steps.bump.outputs.new_tag }}
+
+      # 6. (Опционально) Автоматически создаём GitHub Release
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.bump.outputs.new_tag }}
+          name: Release ${{ steps.bump.outputs.new_tag }}
+          body: |
+            ## Что изменилось
+            
+            **PR:** ${{ github.event.pull_request.title }}
+            
+            **Тип изменений:** ${{ steps.bump.outputs.bump_type }}
+            
+            Автоматически созданный релиз.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
